@@ -1,0 +1,32 @@
+# Use official Python 3.13 image
+FROM python:3.13-slim
+
+# Set environment variables
+ENV PYTHONDONTWRITEBYTECODE=1
+ENV PYTHONUNBUFFERED=1
+
+# Create working directory
+WORKDIR /app
+
+# Install system dependencies
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    build-essential gcc curl \
+    && rm -rf /var/lib/apt/lists/*
+
+# Copy requirements first (for caching)
+COPY requirements.txt .
+
+# Install dependencies
+RUN pip install --no-cache-dir --upgrade pip \
+    && pip install --no-cache-dir -r requirements.txt \
+    && pip install --no-cache-dir gunicorn
+
+# Copy project files
+COPY . .
+
+# Expose port for Render
+EXPOSE 5000
+
+# Command to run the app with Gunicorn
+# Bind to 0.0.0.0:5000 so Render can route traffic
+CMD ["gunicorn", "--bind", "0.0.0.0:5000", "app:app"]
