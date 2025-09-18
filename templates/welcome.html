@@ -1,0 +1,22 @@
+<!-- templates/welcome.html -->
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <title>Welcome</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+  </head>
+  <body>
+    <div class="container">
+      <h1>Welcome to Alzheimer’s Disease Prediction System</h1>
+      <p>Please provide basic information and proceed to input patient data.</p>
+      
+      <form action="/input" method="get">
+        <label for="doctor_name">Doctor Name:</label>
+        <input type="text" id="doctor_name" name="doctor_name" placeholder="Enter your name" required>
+        <br><br>
+        <button type="submit">Go to Input Page</button>
+      </form>
+    </div>
+  </body>
+</html>
