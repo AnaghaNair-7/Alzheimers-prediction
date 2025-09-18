@@ -1,0 +1,106 @@
+<!-- templates/input.html -->
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <title>Patient Input</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+  </head>
+  <body>
+    <div class="container">
+      <h1>Enter Patient Data</h1>
+      <form action="/predict" method="post">
+        
+        <label for="PatientID">Patient ID:</label>
+        <input type="text" id="PatientID" name="PatientID" required><br>
+
+        <label for="Age">Age:</label>
+        <input type="number" id="Age" name="Age" required><br>
+
+        <label for="Gender">Gender:</label>
+        <select id="Gender" name="Gender" required>
+          <option value="">--Select--</option>
+          <option value="Male">Male</option>
+          <option value="Female">Female</option>
+        </select><br>
+
+        <label for="Ethnicity">Ethnicity:</label>
+        <input type="text" id="Ethnicity" name="Ethnicity"><br>
+
+        <label for="EducationLevel">Education Level:</label>
+        <input type="text" id="EducationLevel" name="EducationLevel"><br>
+
+        <label for="BMI">BMI:</label>
+        <input type="number" step="0.1" id="BMI" name="BMI"><br>
+
+        <label for="Smoking">Smoking:</label>
+        <select id="Smoking" name="Smoking">
+          <option value="0">No</option>
+          <option value="1">Yes</option>
+        </select><br>
+
+        <label for="AlcoholConsumption">Alcohol Consumption:</label>
+        <select id="AlcoholConsumption" name="AlcoholConsumption">
+          <option value="0">No</option>
+          <option value="1">Yes</option>
+        </select><br>
+
+        <label for="PhysicalActivity">Physical Activity:</label>
+        <input type="number" id="PhysicalActivity" name="PhysicalActivity"><br>
+
+        <label for="DietQuality">Diet Quality:</label>
+        <input type="number" id="DietQuality" name="DietQuality"><br>
+
+        <label for="MemoryComplaints">Memory Complaints:</label>
+        <select id="MemoryComplaints" name="MemoryComplaints">
+          <option value="0">No</option>
+          <option value="1">Yes</option>
+        </select><br>
+
+        <label for="BehavioralProblems">Behavioral Problems:</label>
+        <select id="BehavioralProblems" name="BehavioralProblems">
+          <option value="0">No</option>
+          <option value="1">Yes</option>
+        </select><br>
+
+        <label for="ADL">ADL (Activities of Daily Living):</label>
+        <input type="number" id="ADL" name="ADL"><br>
+
+        <label for="Confusion">Confusion:</label>
+        <select id="Confusion" name="Confusion">
+          <option value="0">No</option>
+          <option value="1">Yes</option>
+        </select><br>
+
+        <label for="Disorientation">Disorientation:</label>
+        <select id="Disorientation" name="Disorientation">
+          <option value="0">No</option>
+          <option value="1">Yes</option>
+        </select><br>
+
+        <label for="PersonalityChanges">Personality Changes:</label>
+        <select id="PersonalityChanges" name="PersonalityChanges">
+          <option value="0">No</option>
+          <option value="1">Yes</option>
+        </select><br>
+
+        <label for="DifficultyCompletingTasks">Difficulty Completing Tasks:</label>
+        <select id="DifficultyCompletingTasks" name="DifficultyCompletingTasks">
+          <option value="0">No</option>
+          <option value="1">Yes</option>
+        </select><br>
+
+        <label for="Forgetfulness">Forgetfulness:</label>
+        <select id="Forgetfulness" name="Forgetfulness">
+          <option value="0">No</option>
+          <option value="1">Yes</option>
+        </select><br>
+
+        <label for="DoctorInCharge">Doctor In Charge:</label>
+        <input type="text" id="DoctorInCharge" name="DoctorInCharge"><br>
+
+        <button type="submit">Predict</button>
+      </form>
+    </div>
+  </body>
+</html>
