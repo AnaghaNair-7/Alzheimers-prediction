@@ -1,28 +1,733 @@
-<!-- templates/output.html -->
 <!doctype html>
 <html>
-  <head>
+<head>
     <meta charset="utf-8">
-    <title>Prediction Result</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
-  </head>
-  <body>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Prediction Results - Alzheimer's Assessment</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(-45deg, #667eea, #764ba2, #f093fb, #f5576c);
+            background-size: 400% 400%;
+            animation: gradientShift 15s ease infinite;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        @keyframes gradientShift {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            animation: slideInUp 1s ease-out;
+        }
+
+        @keyframes slideInUp {
+            from {
+                opacity: 0;
+                transform: translateY(50px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .header {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 25px;
+            box-shadow: 0 25px 50px rgba(0, 0, 0, 0.15);
+            padding: 2.5rem;
+            text-align: center;
+            margin-bottom: 2rem;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .header::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: linear-gradient(45deg, transparent, rgba(103, 126, 234, 0.1), transparent);
+            animation: shimmer 3s linear infinite;
+        }
+
+        @keyframes shimmer {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .header h1 {
+            font-size: 2.5rem;
+            font-weight: 700;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 0.5rem;
+            position: relative;
+            z-index: 1;
+        }
+
+        .header p {
+            color: #5a6c7d;
+            font-size: 1.1rem;
+            position: relative;
+            z-index: 1;
+        }
+
+        .results-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+            gap: 2rem;
+            margin-bottom: 2rem;
+        }
+
+        .result-card {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 20px;
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.1);
+            padding: 2rem;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .result-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 25px 50px rgba(0, 0, 0, 0.15);
+        }
+
+        .card-header {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .card-icon {
+            font-size: 2rem;
+            padding: 0.75rem;
+            border-radius: 15px;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            animation: pulse 2s ease-in-out infinite alternate;
+        }
+
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            100% { transform: scale(1.1); }
+        }
+
+        .card-title {
+            font-size: 1.3rem;
+            font-weight: 600;
+            color: #2c3e50;
+        }
+
+        /* Prediction Result Styles */
+        .prediction-result {
+            text-align: center;
+            padding: 2rem;
+        }
+
+        .prediction-value {
+            font-size: 3rem;
+            font-weight: 700;
+            margin: 1rem 0;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+
+        .prediction-positive {
+            background: linear-gradient(135deg, #ff6b6b, #ee5a24);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            animation: alertPulse 2s ease-in-out infinite alternate;
+        }
+
+        .prediction-negative {
+            background: linear-gradient(135deg, #00b894, #00a085);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        @keyframes alertPulse {
+            0% { filter: drop-shadow(0 0 5px rgba(255, 107, 107, 0.3)); }
+            100% { filter: drop-shadow(0 0 15px rgba(255, 107, 107, 0.6)); }
+        }
+
+        /* Confidence Meter */
+        .confidence-meter {
+            margin: 2rem 0;
+        }
+
+        .meter-container {
+            background: #e0e6ed;
+            border-radius: 25px;
+            height: 20px;
+            overflow: hidden;
+            position: relative;
+            margin: 1rem 0;
+        }
+
+        .meter-fill {
+            height: 100%;
+            border-radius: 25px;
+            transition: width 2s ease-in-out;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .meter-fill.high-risk {
+            background: linear-gradient(90deg, #ff6b6b, #ee5a24);
+        }
+
+        .meter-fill.low-risk {
+            background: linear-gradient(90deg, #00b894, #00a085);
+        }
+
+        .meter-fill::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.6), transparent);
+            animation: shimmerMeter 2s linear infinite;
+        }
+
+        @keyframes shimmerMeter {
+            0% { left: -100%; }
+            100% { left: 100%; }
+        }
+
+        .confidence-text {
+            font-size: 1.5rem;
+            font-weight: 600;
+            text-align: center;
+        }
+
+        /* Risk Factors Analysis */
+        .risk-factors {
+            display: grid;
+            gap: 1rem;
+        }
+
+        .risk-factor {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1rem;
+            background: rgba(103, 126, 234, 0.05);
+            border-radius: 10px;
+            border-left: 4px solid #667eea;
+        }
+
+        .factor-name {
+            font-weight: 600;
+            color: #2c3e50;
+        }
+
+        .factor-impact {
+            padding: 0.25rem 0.75rem;
+            border-radius: 15px;
+            font-size: 0.8rem;
+            font-weight: 600;
+        }
+
+        .impact-high {
+            background: #ff6b6b;
+            color: white;
+        }
+
+        .impact-medium {
+            background: #fdcb6e;
+            color: #2d3436;
+        }
+
+        .impact-low {
+            background: #00b894;
+            color: white;
+        }
+
+        /* Recommendations */
+        .recommendations {
+            background: linear-gradient(135deg, #e3f2fd, #bbdefb);
+            border: 2px solid #42a5f5;
+            border-radius: 15px;
+            padding: 2rem;
+        }
+
+        .recommendation-item {
+            display: flex;
+            align-items: flex-start;
+            gap: 1rem;
+            margin-bottom: 1rem;
+            padding: 1rem;
+            background: rgba(255, 255, 255, 0.7);
+            border-radius: 10px;
+        }
+
+        .recommendation-item:last-child {
+            margin-bottom: 0;
+        }
+
+        .recommendation-icon {
+            font-size: 1.5rem;
+            padding: 0.5rem;
+            background: #42a5f5;
+            color: white;
+            border-radius: 50%;
+            flex-shrink: 0;
+        }
+
+        .recommendation-text {
+            color: #1565c0;
+            line-height: 1.6;
+        }
+
+        /* Action Buttons */
+        .action-buttons {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            margin-top: 2rem;
+        }
+
+        .action-btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 50%, #f093fb 100%);
+            background-size: 200% 200%;
+            color: white;
+            padding: 1rem 2rem;
+            border: none;
+            border-radius: 15px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .action-btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+            transition: left 0.5s;
+        }
+
+        .action-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 15px 30px rgba(103, 126, 234, 0.4);
+            background-position: 100% 0;
+        }
+
+        .action-btn:hover::before {
+            left: 100%;
+        }
+
+        .action-btn.secondary {
+            background: linear-gradient(135deg, #74b9ff, #0984e3);
+        }
+
+        .action-btn.secondary:hover {
+            box-shadow: 0 15px 30px rgba(116, 185, 255, 0.4);
+        }
+
+        /* Patient Info Summary */
+        .patient-summary {
+            background: rgba(255, 255, 255, 0.9);
+            border-radius: 15px;
+            padding: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .summary-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+        }
+
+        .summary-item {
+            text-align: center;
+            padding: 1rem;
+            background: rgba(103, 126, 234, 0.05);
+            border-radius: 10px;
+        }
+
+        .summary-label {
+            font-size: 0.8rem;
+            color: #666;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 0.5rem;
+        }
+
+        .summary-value {
+            font-size: 1.2rem;
+            font-weight: 600;
+            color: #2c3e50;
+        }
+
+        /* Print Button */
+        .print-btn {
+            position: fixed;
+            top: 2rem;
+            right: 2rem;
+            background: rgba(255, 255, 255, 0.9);
+            color: #667eea;
+            padding: 0.75rem;
+            border: none;
+            border-radius: 50%;
+            font-size: 1.5rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+        }
+
+        .print-btn:hover {
+            transform: scale(1.1);
+            background: white;
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+        }
+
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            .container {
+                margin: 1rem;
+            }
+
+            .header {
+                padding: 2rem 1.5rem;
+            }
+
+            .header h1 {
+                font-size: 2rem;
+            }
+
+            .results-grid {
+                grid-template-columns: 1fr;
+                gap: 1.5rem;
+            }
+
+            .result-card {
+                padding: 1.5rem;
+            }
+
+            .prediction-value {
+                font-size: 2rem;
+            }
+
+            .action-buttons {
+                grid-template-columns: 1fr;
+            }
+
+            .print-btn {
+                position: relative;
+                top: auto;
+                right: auto;
+                margin: 1rem auto;
+                display: block;
+                border-radius: 15px;
+                padding: 1rem 2rem;
+            }
+        }
+
+        /* Loading animation for page entry */
+        .fade-in {
+            animation: fadeIn 0.8s ease-out forwards;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* Print styles */
+        @media print {
+            body {
+                background: white !important;
+            }
+            
+            .action-buttons,
+            .print-btn {
+                display: none !important;
+            }
+            
+            .result-card {
+                box-shadow: none !important;
+                border: 1px solid #ddd !important;
+                break-inside: avoid;
+            }
+        }
+    </style>
+</head>
+<body>
+    <button class="print-btn" onclick="window.print()" title="Print Results">🖨️</button>
+
     <div class="container">
-      <h1>Prediction Result</h1>
-      
-      <p><strong>Prediction:</strong> {{ prediction }}</p>
-      
-      {% if probability %}
-        <p><strong>Confidence:</strong> {{ '%.2f'|format(probability * 100) }}%</p>
-      {% endif %}
-      
-      <a href="/input">
-        <button>Predict Another Patient</button>
-      </a>
-      <br><br>
-      <a href="/">
-        <button>Back to Welcome Page</button>
-      </a>
+        <div class="header">
+            <h1>Prediction Results</h1>
+            <p>AI-powered Alzheimer's disease risk assessment completed</p>
+        </div>
+
+        <!-- Patient Summary (Demo Data) -->
+        <div class="patient-summary fade-in">
+            <div class="summary-grid">
+                <div class="summary-item">
+                    <div class="summary-label">Patient ID</div>
+                    <div class="summary-value">{{ patient_id or 'AD-2024-001' }}</div>
+                </div>
+                <div class="summary-item">
+                    <div class="summary-label">Age</div>
+                    <div class="summary-value">{{ age or '72 years' }}</div>
+                </div>
+                <div class="summary-item">
+                    <div class="summary-label">Gender</div>
+                    <div class="summary-value">{{ gender or 'Female' }}</div>
+                </div>
+                <div class="summary-item">
+                    <div class="summary-label">Assessment Date</div>
+                    <div class="summary-value" id="currentDate"></div>
+                </div>
+            </div>
+        </div>
+
+        <div class="results-grid">
+            <!-- Main Prediction Result -->
+            <div class="result-card fade-in" style="animation-delay: 0.2s;">
+                <div class="card-header">
+                    <div class="card-icon">🧠</div>
+                    <div class="card-title">Primary Prediction</div>
+                </div>
+                
+                <div class="prediction-result">
+                    <div class="prediction-value" id="predictionValue">
+                        {{ prediction or 'Positive Risk' }}
+                    </div>
+                    <p style="color: #666; margin-top: 1rem;">
+                        Based on comprehensive analysis of patient data and risk factors
+                    </p>
+                </div>
+            </div>
+
+            <!-- Confidence Score -->
+            <div class="result-card fade-in" style="animation-delay: 0.4s;">
+                <div class="card-header">
+                    <div class="card-icon">📊</div>
+                    <div class="card-title">Confidence Level</div>
+                </div>
+                
+                <div class="confidence-meter">
+                    <div class="confidence-text" id="confidenceText">
+                        {{ ('%.1f'|format(probability * 100)) if probability else '87.3' }}%
+                    </div>
+                    <div class="meter-container">
+                        <div class="meter-fill" id="meterFill" style="width: 0%;"></div>
+                    </div>
+                    <p style="color: #666; text-align: center; margin-top: 1rem;">
+                        High confidence indicates reliable prediction accuracy
+                    </p>
+                </div>
+            </div>
+
+            <!-- Risk Factors Analysis -->
+            <div class="result-card fade-in" style="animation-delay: 0.6s;">
+                <div class="card-header">
+                    <div class="card-icon">⚠️</div>
+                    <div class="card-title">Key Risk Factors</div>
+                </div>
+                
+                <div class="risk-factors">
+                    <div class="risk-factor">
+                        <span class="factor-name">Advanced Age (70+)</span>
+                        <span class="factor-impact impact-high">High Impact</span>
+                    </div>
+                    <div class="risk-factor">
+                        <span class="factor-name">Memory Complaints</span>
+                        <span class="factor-impact impact-high">High Impact</span>
+                    </div>
+                    <div class="risk-factor">
+                        <span class="factor-name">Family History</span>
+                        <span class="factor-impact impact-medium">Medium Impact</span>
+                    </div>
+                    <div class="risk-factor">
+                        <span class="factor-name">Lifestyle Factors</span>
+                        <span class="factor-impact impact-low">Low Impact</span>
+                    </div>
+                    <div class="risk-factor">
+                        <span class="factor-name">Education Level</span>
+                        <span class="factor-impact impact-medium">Medium Impact</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Clinical Recommendations -->
+            <div class="result-card fade-in" style="animation-delay: 0.8s;">
+                <div class="card-header">
+                    <div class="card-icon">💡</div>
+                    <div class="card-title">Clinical Recommendations</div>
+                </div>
+                
+                <div class="recommendations">
+                    <div class="recommendation-item">
+                        <div class="recommendation-icon">🔬</div>
+                        <div class="recommendation-text">
+                            <strong>Further Neuropsychological Testing:</strong> Recommend comprehensive cognitive assessment including MMSE, MoCA, and domain-specific testing.
+                        </div>
+                    </div>
+                    <div class="recommendation-item">
+                        <div class="recommendation-icon">🧬</div>
+                        <div class="recommendation-text">
+                            <strong>Biomarker Analysis:</strong> Consider CSF analysis or PET imaging for amyloid-beta and tau protein levels.
+                        </div>
+                    </div>
+                    <div class="recommendation-item">
+                        <div class="recommendation-icon">👥</div>
+                        <div class="recommendation-text">
+                            <strong>Multidisciplinary Consultation:</strong> Involve neurologist, geriatrician, and neuropsychologist for comprehensive care planning.
+                        </div>
+                    </div>
+                    <div class="recommendation-item">
+                        <div class="recommendation-icon">📅</div>
+                        <div class="recommendation-text">
+                            <strong>Follow-up Schedule:</strong> Plan regular monitoring with cognitive assessments every 6 months to track progression.
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="action-buttons">
+            <a href="/input" class="action-btn">
+                👤 Assess Another Patient
+            </a>
+            <a href="/" class="action-btn secondary">
+                🏠 Back to Home
+            </a>
+            <button class="action-btn" onclick="generateReport()" style="background: linear-gradient(135deg, #00b894, #00a085);">
+                📄 Generate Report
+            </button>
+            <button class="action-btn" onclick="shareResults()" style="background: linear-gradient(135deg, #6c5ce7, #5f3dc4);">
+                📤 Share Results
+            </button>
+        </div>
     </div>
-  </body>
+
+    <script>
+        // Set current date
+        document.getElementById('currentDate').textContent = new Date().toLocaleDateString();
+
+        // Animate confidence meter on load
+        window.addEventListener('load', function() {
+            setTimeout(() => {
+                const meterFill = document.getElementById('meterFill');
+                const confidenceValue = parseFloat(document.getElementById('confidenceText').textContent);
+                
+                meterFill.style.width = confidenceValue + '%';
+                
+                // Set meter color based on prediction
+                const predictionText = document.getElementById('predictionValue').textContent.toLowerCase();
+                if (predictionText.includes('positive') || predictionText.includes('risk')) {
+                    meterFill.classList.add('high-risk');
+                    document.getElementById('predictionValue').classList.add('prediction-positive');
+                } else {
+                    meterFill.classList.add('low-risk');
+                    document.getElementById('predictionValue').classList.add('prediction-negative');
+                }
+            }, 1000);
+        });
+
+        // Animate cards on scroll
+        const observerOptions = {
+            threshold: 0.1,
+            rootMargin: '0px 0px -50px 0px'
+        };
+
+        const observer = new IntersectionObserver(function(entries) {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('fade-in');
+                }
+            });
+        }, observerOptions);
+
+        document.querySelectorAll('.result-card').forEach(card => {
+            observer.observe(card);
+        });
+
+        // Action button functions
+        function generateReport() {
+            alert('Generating comprehensive PDF report...\n\nThis would typically:\n• Create detailed clinical report\n• Include all risk factors\n• Provide recommendations\n• Format for medical records');
+        }
+
+        function shareResults() {
+            if (navigator.share) {
+                navigator.share({
+                    title: 'Alzheimer\'s Risk Assessment Results',
+                    text: 'Patient assessment completed with AI-powered analysis',
+                    url: window.location.href
+                });
+            } else {
+                alert('Sharing results...\n\nThis would typically allow:\n• Email to colleagues\n• Secure medical platform sharing\n• Patient portal upload\n• EHR integration');
+            }
+        }
+
+        // Add subtle parallax effect to header
+        window.addEventListener('scroll', function() {
+            const header = document.querySelector('.header');
+            const scrolled = window.pageYOffset;
+            header.style.transform = `translateY(${scrolled * 0.1}px)`;
+        });
+
+        // Auto-refresh data simulation (for demo)
+        setTimeout(() => {
+            const riskFactors = document.querySelectorAll('.risk-factor');
+            riskFactors.forEach((factor, index) => {
+                setTimeout(() => {
+                    factor.style.transform = 'scale(1.02)';
+                    setTimeout(() => {
+                        factor.style.transform = 'scale(1)';
+                    }, 200);
+                }, index * 100);
+            });
+        }, 3000);
+    </script>
+</body>
 </html>

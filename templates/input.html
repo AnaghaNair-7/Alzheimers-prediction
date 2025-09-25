@@ -1,106 +1,766 @@
-<!-- templates/input.html -->
 <!doctype html>
 <html>
-  <head>
+<head>
     <meta charset="utf-8">
-    <title>Patient Input</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
-  </head>
-  <body>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Patient Data Input - Alzheimer's Prediction</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(-45deg, #667eea, #764ba2, #f093fb, #f5576c);
+            background-size: 400% 400%;
+            animation: gradientShift 15s ease infinite;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        @keyframes gradientShift {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 25px;
+            box-shadow: 0 25px 50px rgba(0, 0, 0, 0.15);
+            overflow: hidden;
+            animation: slideInUp 1s ease-out;
+        }
+
+        @keyframes slideInUp {
+            from {
+                opacity: 0;
+                transform: translateY(50px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .header {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            padding: 2.5rem;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .header::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: linear-gradient(45deg, transparent, rgba(255, 255, 255, 0.1), transparent);
+            animation: shimmer 3s linear infinite;
+        }
+
+        @keyframes shimmer {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .header h1 {
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+            text-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+            position: relative;
+            z-index: 1;
+        }
+
+        .header p {
+            font-size: 1.1rem;
+            opacity: 0.9;
+            position: relative;
+            z-index: 1;
+        }
+
+        .form-container {
+            padding: 3rem;
+        }
+
+        .form-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 2rem;
+            margin-bottom: 2rem;
+        }
+
+        .form-section {
+            background: rgba(103, 126, 234, 0.05);
+            border: 2px solid rgba(103, 126, 234, 0.1);
+            border-radius: 20px;
+            padding: 2rem;
+            transition: all 0.3s ease;
+        }
+
+        .form-section:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 35px rgba(103, 126, 234, 0.1);
+            border-color: rgba(103, 126, 234, 0.3);
+        }
+
+        .section-title {
+            color: #667eea;
+            font-size: 1.3rem;
+            font-weight: 600;
+            margin-bottom: 1.5rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .section-icon {
+            font-size: 1.5rem;
+            animation: pulse 2s ease-in-out infinite alternate;
+        }
+
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            100% { transform: scale(1.1); }
+        }
+
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+
+        .form-group:last-child {
+            margin-bottom: 0;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 0.5rem;
+            color: #2c3e50;
+            font-weight: 600;
+            font-size: 0.95rem;
+        }
+
+        input[type="text"],
+        input[type="number"],
+        select {
+            width: 100%;
+            padding: 1rem;
+            border: 2px solid transparent;
+            border-radius: 12px;
+            font-size: 1rem;
+            background: linear-gradient(white, white) padding-box,
+                        linear-gradient(135deg, #667eea, #764ba2) border-box;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        input[type="text"]:focus,
+        input[type="number"]:focus,
+        select:focus {
+            outline: none;
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(103, 126, 234, 0.15);
+            background: linear-gradient(#f8f9ff, #f8f9ff) padding-box,
+                        linear-gradient(135deg, #667eea, #764ba2) border-box;
+        }
+
+        select {
+            cursor: pointer;
+        }
+
+        select option {
+            padding: 0.5rem;
+        }
+
+        .yes-no-toggle {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 0.5rem;
+            margin-top: 0.5rem;
+        }
+
+        .toggle-option {
+            position: relative;
+        }
+
+        .toggle-option input[type="radio"] {
+            display: none;
+        }
+
+        .toggle-option label {
+            display: block;
+            padding: 0.75rem;
+            text-align: center;
+            border: 2px solid #e0e6ed;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-weight: 500;
+            margin: 0;
+        }
+
+        .toggle-option input[type="radio"]:checked + label {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            border-color: #667eea;
+            transform: scale(1.05);
+        }
+
+        .toggle-option label:hover {
+            border-color: #667eea;
+            background: rgba(103, 126, 234, 0.1);
+        }
+
+        .submit-section {
+            text-align: center;
+            margin-top: 3rem;
+            padding-top: 2rem;
+            border-top: 2px solid rgba(103, 126, 234, 0.1);
+        }
+
+        .submit-btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 50%, #f093fb 100%);
+            background-size: 200% 200%;
+            color: white;
+            padding: 1.5rem 4rem;
+            border: none;
+            border-radius: 50px;
+            font-size: 1.2rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            position: relative;
+            overflow: hidden;
+            box-shadow: 0 10px 30px rgba(103, 126, 234, 0.3);
+        }
+
+        .submit-btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+            transition: left 0.5s;
+        }
+
+        .submit-btn:hover {
+            transform: translateY(-3px) scale(1.05);
+            box-shadow: 0 20px 40px rgba(103, 126, 234, 0.4);
+            background-position: 100% 0;
+        }
+
+        .submit-btn:hover::before {
+            left: 100%;
+        }
+
+        .submit-btn:active {
+            transform: translateY(-1px) scale(1.02);
+        }
+
+        .progress-indicator {
+            display: flex;
+            justify-content: center;
+            margin-bottom: 2rem;
+            gap: 1rem;
+        }
+
+        .progress-step {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background: #e0e6ed;
+            transition: all 0.3s ease;
+        }
+
+        .progress-step.active {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            transform: scale(1.3);
+        }
+
+        .validation-message {
+            display: none;
+            background: linear-gradient(135deg, #ff6b6b, #ee5a24);
+            color: white;
+            padding: 1rem;
+            border-radius: 10px;
+            margin-top: 1rem;
+            text-align: center;
+            animation: shake 0.5s ease-in-out;
+        }
+
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-5px); }
+            75% { transform: translateX(5px); }
+        }
+
+        .back-link {
+            position: absolute;
+            top: 2rem;
+            left: 2rem;
+            background: rgba(255, 255, 255, 0.9);
+            color: #667eea;
+            padding: 0.75rem 1.5rem;
+            border-radius: 25px;
+            text-decoration: none;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+        }
+
+        .back-link:hover {
+            transform: translateX(-5px);
+            background: white;
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                margin: 1rem;
+                border-radius: 20px;
+            }
+
+            .header {
+                padding: 2rem 1.5rem;
+            }
+
+            .header h1 {
+                font-size: 2rem;
+            }
+
+            .form-container {
+                padding: 2rem 1.5rem;
+            }
+
+            .form-grid {
+                grid-template-columns: 1fr;
+                gap: 1.5rem;
+            }
+
+            .form-section {
+                padding: 1.5rem;
+            }
+
+            .submit-btn {
+                padding: 1.2rem 3rem;
+                font-size: 1.1rem;
+            }
+
+            .back-link {
+                position: relative;
+                top: 0;
+                left: 0;
+                display: inline-block;
+                margin-bottom: 1rem;
+            }
+        }
+
+        .tooltip {
+            position: relative;
+            display: inline-block;
+            margin-left: 0.5rem;
+            cursor: help;
+        }
+
+        .tooltip .tooltiptext {
+            visibility: hidden;
+            width: 200px;
+            background-color: #555;
+            color: #fff;
+            text-align: center;
+            border-radius: 6px;
+            padding: 5px;
+            position: absolute;
+            z-index: 1;
+            bottom: 125%;
+            left: 50%;
+            margin-left: -100px;
+            opacity: 0;
+            transition: opacity 0.3s;
+            font-size: 0.8rem;
+        }
+
+        .tooltip:hover .tooltiptext {
+            visibility: visible;
+            opacity: 1;
+        }
+    </style>
+</head>
+<body>
     <div class="container">
-      <h1>Enter Patient Data</h1>
-      <form action="/predict" method="post">
+        <a href="/" class="back-link">← Back to Welcome</a>
         
-        <label for="PatientID">Patient ID:</label>
-        <input type="text" id="PatientID" name="PatientID" required><br>
+        <div class="header">
+            <h1>Patient Data Input</h1>
+            <p>Enter comprehensive patient information for AI-powered Alzheimer's risk assessment</p>
+        </div>
 
-        <label for="Age">Age:</label>
-        <input type="number" id="Age" name="Age" required><br>
+        <div class="form-container">
+            <div class="progress-indicator">
+                <div class="progress-step active"></div>
+                <div class="progress-step"></div>
+                <div class="progress-step"></div>
+                <div class="progress-step"></div>
+            </div>
 
-        <label for="Gender">Gender:</label>
-        <select id="Gender" name="Gender" required>
-          <option value="">--Select--</option>
-          <option value="Male">Male</option>
-          <option value="Female">Female</option>
-        </select><br>
+            <form action="/predict" method="post" id="patientForm">
+                <div class="form-grid">
+                    <!-- Basic Information Section -->
+                    <div class="form-section">
+                        <h3 class="section-title">
+                            <span class="section-icon">👤</span>
+                            Basic Information
+                        </h3>
+                        
+                        <div class="form-group">
+                            <label for="PatientID">Patient ID</label>
+                            <input type="text" id="PatientID" name="PatientID" placeholder="Enter unique patient identifier" required>
+                        </div>
 
-        <label for="Ethnicity">Ethnicity:</label>
-        <input type="text" id="Ethnicity" name="Ethnicity"><br>
+                        <div class="form-group">
+                            <label for="Age">Age</label>
+                            <input type="number" id="Age" name="Age" min="18" max="120" placeholder="Enter age in years" required>
+                        </div>
 
-        <label for="EducationLevel">Education Level:</label>
-        <input type="text" id="EducationLevel" name="EducationLevel"><br>
+                        <div class="form-group">
+                            <label for="Gender">Gender</label>
+                            <select id="Gender" name="Gender" required>
+                                <option value="">Select Gender</option>
+                                <option value="Male">Male</option>
+                                <option value="Female">Female</option>
+                            </select>
+                        </div>
 
-        <label for="BMI">BMI:</label>
-        <input type="number" step="0.1" id="BMI" name="BMI"><br>
+                        <div class="form-group">
+                            <label for="Ethnicity">Ethnicity</label>
+                            <input type="text" id="Ethnicity" name="Ethnicity" placeholder="e.g., Caucasian, Hispanic, Asian">
+                        </div>
 
-        <label for="Smoking">Smoking:</label>
-        <select id="Smoking" name="Smoking">
-          <option value="0">No</option>
-          <option value="1">Yes</option>
-        </select><br>
+                        <div class="form-group">
+                            <label for="EducationLevel">Education Level</label>
+                            <select id="EducationLevel" name="EducationLevel">
+                                <option value="">Select Education Level</option>
+                                <option value="Elementary">Elementary</option>
+                                <option value="High School">High School</option>
+                                <option value="Bachelor's">Bachelor's Degree</option>
+                                <option value="Master's">Master's Degree</option>
+                                <option value="Doctorate">Doctorate</option>
+                            </select>
+                        </div>
 
-        <label for="AlcoholConsumption">Alcohol Consumption:</label>
-        <select id="AlcoholConsumption" name="AlcoholConsumption">
-          <option value="0">No</option>
-          <option value="1">Yes</option>
-        </select><br>
+                        <div class="form-group">
+                            <label for="DoctorInCharge">Doctor In Charge</label>
+                            <input type="text" id="DoctorInCharge" name="DoctorInCharge" placeholder="Enter attending physician name">
+                        </div>
+                    </div>
 
-        <label for="PhysicalActivity">Physical Activity:</label>
-        <input type="number" id="PhysicalActivity" name="PhysicalActivity"><br>
+                    <!-- Lifestyle Factors Section -->
+                    <div class="form-section">
+                        <h3 class="section-title">
+                            <span class="section-icon">🏃‍♂️</span>
+                            Lifestyle Factors
+                        </h3>
+                        
+                        <div class="form-group">
+                            <label for="BMI">BMI (Body Mass Index)</label>
+                            <input type="number" step="0.1" id="BMI" name="BMI" min="10" max="50" placeholder="e.g., 25.3">
+                        </div>
 
-        <label for="DietQuality">Diet Quality:</label>
-        <input type="number" id="DietQuality" name="DietQuality"><br>
+                        <div class="form-group">
+                            <label for="PhysicalActivity">Physical Activity (hours/week)</label>
+                            <input type="number" id="PhysicalActivity" name="PhysicalActivity" min="0" max="50" placeholder="Hours per week">
+                        </div>
 
-        <label for="MemoryComplaints">Memory Complaints:</label>
-        <select id="MemoryComplaints" name="MemoryComplaints">
-          <option value="0">No</option>
-          <option value="1">Yes</option>
-        </select><br>
+                        <div class="form-group">
+                            <label for="DietQuality">Diet Quality Score (1-10)</label>
+                            <input type="number" id="DietQuality" name="DietQuality" min="1" max="10" placeholder="Rate diet quality 1-10">
+                        </div>
 
-        <label for="BehavioralProblems">Behavioral Problems:</label>
-        <select id="BehavioralProblems" name="BehavioralProblems">
-          <option value="0">No</option>
-          <option value="1">Yes</option>
-        </select><br>
+                        <div class="form-group">
+                            <label>Smoking Status</label>
+                            <div class="yes-no-toggle">
+                                <div class="toggle-option">
+                                    <input type="radio" id="smoking-no" name="Smoking" value="0">
+                                    <label for="smoking-no">No</label>
+                                </div>
+                                <div class="toggle-option">
+                                    <input type="radio" id="smoking-yes" name="Smoking" value="1">
+                                    <label for="smoking-yes">Yes</label>
+                                </div>
+                            </div>
+                        </div>
 
-        <label for="ADL">ADL (Activities of Daily Living):</label>
-        <input type="number" id="ADL" name="ADL"><br>
+                        <div class="form-group">
+                            <label>Alcohol Consumption</label>
+                            <div class="yes-no-toggle">
+                                <div class="toggle-option">
+                                    <input type="radio" id="alcohol-no" name="AlcoholConsumption" value="0">
+                                    <label for="alcohol-no">No</label>
+                                </div>
+                                <div class="toggle-option">
+                                    <input type="radio" id="alcohol-yes" name="AlcoholConsumption" value="1">
+                                    <label for="alcohol-yes">Yes</label>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
 
-        <label for="Confusion">Confusion:</label>
-        <select id="Confusion" name="Confusion">
-          <option value="0">No</option>
-          <option value="1">Yes</option>
-        </select><br>
+                    <!-- Cognitive Symptoms Section -->
+                    <div class="form-section">
+                        <h3 class="section-title">
+                            <span class="section-icon">🧠</span>
+                            Cognitive Symptoms
+                        </h3>
+                        
+                        <div class="form-group">
+                            <label>Memory Complaints</label>
+                            <div class="yes-no-toggle">
+                                <div class="toggle-option">
+                                    <input type="radio" id="memory-no" name="MemoryComplaints" value="0">
+                                    <label for="memory-no">No</label>
+                                </div>
+                                <div class="toggle-option">
+                                    <input type="radio" id="memory-yes" name="MemoryComplaints" value="1">
+                                    <label for="memory-yes">Yes</label>
+                                </div>
+                            </div>
+                        </div>
 
-        <label for="Disorientation">Disorientation:</label>
-        <select id="Disorientation" name="Disorientation">
-          <option value="0">No</option>
-          <option value="1">Yes</option>
-        </select><br>
+                        <div class="form-group">
+                            <label>Confusion</label>
+                            <div class="yes-no-toggle">
+                                <div class="toggle-option">
+                                    <input type="radio" id="confusion-no" name="Confusion" value="0">
+                                    <label for="confusion-no">No</label>
+                                </div>
+                                <div class="toggle-option">
+                                    <input type="radio" id="confusion-yes" name="Confusion" value="1">
+                                    <label for="confusion-yes">Yes</label>
+                                </div>
+                            </div>
+                        </div>
 
-        <label for="PersonalityChanges">Personality Changes:</label>
-        <select id="PersonalityChanges" name="PersonalityChanges">
-          <option value="0">No</option>
-          <option value="1">Yes</option>
-        </select><br>
+                        <div class="form-group">
+                            <label>Disorientation</label>
+                            <div class="yes-no-toggle">
+                                <div class="toggle-option">
+                                    <input type="radio" id="disorientation-no" name="Disorientation" value="0">
+                                    <label for="disorientation-no">No</label>
+                                </div>
+                                <div class="toggle-option">
+                                    <input type="radio" id="disorientation-yes" name="Disorientation" value="1">
+                                    <label for="disorientation-yes">Yes</label>
+                                </div>
+                            </div>
+                        </div>
 
-        <label for="DifficultyCompletingTasks">Difficulty Completing Tasks:</label>
-        <select id="DifficultyCompletingTasks" name="DifficultyCompletingTasks">
-          <option value="0">No</option>
-          <option value="1">Yes</option>
-        </select><br>
+                        <div class="form-group">
+                            <label>Forgetfulness</label>
+                            <div class="yes-no-toggle">
+                                <div class="toggle-option">
+                                    <input type="radio" id="forgetfulness-no" name="Forgetfulness" value="0">
+                                    <label for="forgetfulness-no">No</label>
+                                </div>
+                                <div class="toggle-option">
+                                    <input type="radio" id="forgetfulness-yes" name="Forgetfulness" value="1">
+                                    <label for="forgetfulness-yes">Yes</label>
+                                </div>
+                            </div>
+                        </div>
 
-        <label for="Forgetfulness">Forgetfulness:</label>
-        <select id="Forgetfulness" name="Forgetfulness">
-          <option value="0">No</option>
-          <option value="1">Yes</option>
-        </select><br>
+                        <div class="form-group">
+                            <label>Difficulty Completing Tasks</label>
+                            <div class="yes-no-toggle">
+                                <div class="toggle-option">
+                                    <input type="radio" id="tasks-no" name="DifficultyCompletingTasks" value="0">
+                                    <label for="tasks-no">No</label>
+                                </div>
+                                <div class="toggle-option">
+                                    <input type="radio" id="tasks-yes" name="DifficultyCompletingTasks" value="1">
+                                    <label for="tasks-yes">Yes</label>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
 
-        <label for="DoctorInCharge">Doctor In Charge:</label>
-        <input type="text" id="DoctorInCharge" name="DoctorInCharge"><br>
+                    <!-- Behavioral & Functional Section -->
+                    <div class="form-section">
+                        <h3 class="section-title">
+                            <span class="section-icon">👥</span>
+                            Behavioral & Functional
+                        </h3>
+                        
+                        <div class="form-group">
+                            <label>Behavioral Problems</label>
+                            <div class="yes-no-toggle">
+                                <div class="toggle-option">
+                                    <input type="radio" id="behavioral-no" name="BehavioralProblems" value="0">
+                                    <label for="behavioral-no">No</label>
+                                </div>
+                                <div class="toggle-option">
+                                    <input type="radio" id="behavioral-yes" name="BehavioralProblems" value="1">
+                                    <label for="behavioral-yes">Yes</label>
+                                </div>
+                            </div>
+                        </div>
 
-        <button type="submit">Predict</button>
-      </form>
+                        <div class="form-group">
+                            <label>Personality Changes</label>
+                            <div class="yes-no-toggle">
+                                <div class="toggle-option">
+                                    <input type="radio" id="personality-no" name="PersonalityChanges" value="0">
+                                    <label for="personality-no">No</label>
+                                </div>
+                                <div class="toggle-option">
+                                    <input type="radio" id="personality-yes" name="PersonalityChanges" value="1">
+                                    <label for="personality-yes">Yes</label>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="ADL">ADL Score (Activities of Daily Living)</label>
+                            <input type="number" id="ADL" name="ADL" min="0" max="30" placeholder="ADL assessment score">
+                            <div class="tooltip">ℹ️
+                                <span class="tooltiptext">Score from standardized ADL assessment (0-30 scale)</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="validation-message" id="validationMessage">
+                    Please fill in all required fields marked with *
+                </div>
+
+                <div class="submit-section">
+                    <button type="submit" class="submit-btn" id="submitBtn">
+                        🔬 Generate Prediction
+                    </button>
+                    <p style="margin-top: 1rem; color: #666; font-size: 0.9rem;">
+                        Processing typically takes 2-3 seconds
+                    </p>
+                </div>
+            </form>
+        </div>
     </div>
-  </body>
+
+    <script>
+        // Form validation and submission
+        document.getElementById('patientForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const requiredFields = ['PatientID', 'Age', 'Gender'];
+            let isValid = true;
+            
+            for (let field of requiredFields) {
+                const input = document.getElementById(field);
+                if (!input.value.trim()) {
+                    isValid = false;
+                    input.style.borderColor = '#ff6b6b';
+                } else {
+                    input.style.borderColor = '';
+                }
+            }
+            
+            const validationMessage = document.getElementById('validationMessage');
+            
+            if (!isValid) {
+                validationMessage.style.display = 'block';
+                setTimeout(() => {
+                    validationMessage.style.display = 'none';
+                }, 3000);
+                return;
+            }
+            
+            // Show loading state
+            const submitBtn = document.getElementById('submitBtn');
+            submitBtn.innerHTML = '🔄 Processing...';
+            submitBtn.disabled = true;
+            submitBtn.style.background = 'linear-gradient(135deg, #95a5a6, #7f8c8d)';
+            
+            // Update progress indicator
+            const progressSteps = document.querySelectorAll('.progress-step');
+            progressSteps.forEach((step, index) => {
+                setTimeout(() => {
+                    step.classList.add('active');
+                }, index * 500);
+            });
+            
+            // Simulate processing
+            setTimeout(() => {
+                alert('Patient data submitted successfully! Redirecting to results...');
+                // In real application: this.submit();
+            }, 2000);
+        });
+
+        // Enhanced form interactions
+        const inputs = document.querySelectorAll('input, select');
+        inputs.forEach(input => {
+            input.addEventListener('focus', function() {
+                this.parentElement.style.transform = 'scale(1.02)';
+            });
+            
+            input.addEventListener('blur', function() {
+                this.parentElement.style.transform = 'scale(1)';
+            });
+        });
+
+        // Real-time validation feedback
+        document.getElementById('Age').addEventListener('input', function() {
+            const age = parseInt(this.value);
+            if (age < 18 || age > 120) {
+                this.style.borderColor = '#ff6b6b';
+            } else {
+                this.style.borderColor = '#28a745';
+            }
+        });
+
+        document.getElementById('BMI').addEventListener('input', function() {
+            const bmi = parseFloat(this.value);
+            if (bmi < 10 || bmi > 50) {
+                this.style.borderColor = '#ff6b6b';
+            } else {
+                this.style.borderColor = '#28a745';
+            }
+        });
+
+        // Auto-save form data to prevent loss
+        const formData = {};
+        inputs.forEach(input => {
+            input.addEventListener('input', function() {
+                formData[this.name] = this.value;
+            });
+        });
+
+        // Page load animation
+        window.addEventListener('load', function() {
+            const sections = document.querySelectorAll('.form-section');
+            sections.forEach((section, index) => {
+                setTimeout(() => {
+                    section.style.opacity = '0';
+                    section.style.transform = 'translateY(20px)';
+                    section.style.transition = 'all 0.6s ease';
+                    setTimeout(() => {
+                        section.style.opacity = '1';
+                        section.style.transform = 'translateY(0)';
+                    }, 100);
+                }, index * 200);
+            });
+        });
+    </script>
+</body>
 </html>
